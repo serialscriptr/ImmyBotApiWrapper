@@ -5,6 +5,12 @@ I am not affliated with ImmyBot in anyway and this project is not maintained or 
 The ImmyBot REST API is not officially documented and not officially supported by ImmyBot. The API is also subject to change at any moment.
 Use this project at your own risk especially if you are not exclusively running GET methods.
 
+# Running the module
+For a quick way to load the module's functions into memory run the following
+> (new-object Net.WebClient).DownloadString('https://raw.githubusercontent.com/serialscriptr/ImmyBotApiWrapper/main/ImmyBot%20Web%20Api%20Wrapper/ImmyBotApiWrapper.psm1') | iex
+
+Alternatively download and import the module using Import-Module
+
 # To Do
 - Provide function for all valid 'Remove' endpoints (ex: remove immy user)
 - Provide function for all valid 'New' endpoints (ex: new immy user)
