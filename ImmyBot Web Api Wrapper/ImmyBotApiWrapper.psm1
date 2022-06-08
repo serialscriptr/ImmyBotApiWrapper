@@ -1,4 +1,4 @@
-﻿#region Get
+﻿# Get
 function Get-AuthToken
 {
 	<#
@@ -875,4 +875,94 @@ function Get-ImmyRelease
 	
 	Invoke-WebRequest -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/system/releases" -Headers $Header -ErrorAction Stop
 }
-#endregion Get
+
+# New
+function New-ImmyPerson
+{
+	param
+	(
+		[parameter(Mandatory = $true)]
+		$AuthToken,
+		[parameter(Mandatory = $true)]
+		[validatescript({ $_ -ilike "https://*.immy.bot" })]
+		$ApiEndpointUri,
+		[parameter(Mandatory = $true)]
+		$FirstName,
+		[parameter(Mandatory = $true)]
+		$LastName,
+		[parameter(Mandatory = $true)]
+		$EmailAddress,
+		[parameter(Mandatory = $true)]
+		[int]$ImmyTenantID,
+		[parameter(Mandatory = $true)]
+		[validatescript({$_ -match "^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$"})]
+		$AzurePrincipalID
+	)
+	
+	$Body = "{`"firstName`":`"$FirstName`",`"lastName`":`"$LastName`",`"emailAddress`":`"$EmailAddress`",`"tenantId`":$ImmyTenantID,`"azurePrincipalId`":`"$AzurePrincipalID`"}"
+	$Header = @{
+		"method"	    = "POST"
+		"path"		    = "/api/v1/persons"
+		"authorization" = "Bearer $AuthToken"
+	}
+	
+	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/persons" -Headers $Header -Body $Body -ErrorAction Stop
+}
+
+function New-ImmyLicense
+{
+	param
+	(
+		[parameter(Mandatory = $true)]
+		$AuthToken,
+		[parameter(Mandatory = $true)]
+		[validatescript({ $_ -ilike "https://*.immy.bot" })]
+		$ApiEndpointUri,
+		[parameter(Mandatory = $true)]
+		$LicenseName,
+		[parameter(Mandatory = $true)]
+		$LicenseValue,
+		[parameter(Mandatory = $true)]
+		[int]$ImmySoftwareID,
+		[parameter(Mandatory = $true)]
+		[int]$ImmyTenantID
+	)
+	
+	# need more info on software type/ more examples
+	# need an example with an uploaded file too
+	# need to add logic for locking to software version
+	
+	$Body = "{`"name`":`"$LicenseName`",`"licenseValue`":`"$LicenseValue`",`"softwareType`":0,`"softwareIdentifier`":`"$ImmySoftwareID`",`"semanticVersion`":null,`"tenantId`":$ImmyTenantID,`"restrictToMajorVersion`":false"
+	$Header = @{
+		"method"	    = "POST"
+		"path"		    = "/api/v1/licenses"
+		"authorization" = "Bearer $AuthToken"
+	}
+	
+	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/licenses" -Headers $Header -Body $Body -ErrorAction Stop
+}
+
+# Delete
+function Remove-ImmyPerson
+{
+	param
+	(
+		[parameter(Mandatory = $true)]
+		$AuthToken,
+		[parameter(Mandatory = $true)]
+		[validatescript({ $_ -ilike "https://*.immy.bot" })]
+		$ApiEndpointUri,
+		[parameter(Mandatory = $true)]
+		[int]$ImmyPersonID
+	)
+	
+	# Add support for confirm and or force common parameter
+	
+	$Header = @{
+		"method"	    = "DELETE"
+		"path"		    = "/api/v1/persons/15871"
+		"authorization" = "Bearer $AuthToken"
+	}
+	
+	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/persons/$ImmyPersonID" -Headers $Header -ErrorAction Stop
+}
