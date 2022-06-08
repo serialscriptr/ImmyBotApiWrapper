@@ -58,10 +58,10 @@ function Get-AuthToken
 	try
 	{
 		Write-Verbose "Attempting to get access token..."
-		$Token = Invoke-RestMethod -Method Post -Uri $RequestAccessTokenUri -Body $body -ContentType $contentType -ErrorAction Stop
-		Write-Verbose "Access token obtained. Token will expire in $([math]::Round($Token.expires_in/60)) minutes"
+		$AuthToken = Invoke-RestMethod -Method Post -Uri $RequestAccessTokenUri -Body $body -ContentType $contentType -ErrorAction Stop
+		Write-Verbose "Access token obtained. Token will expire in $([math]::Round($AuthToken.expires_in/60)) minutes"
 	
-		return $Token.access_token	
+		return $AuthToken.access_token	
 	}
 	catch
 	{
@@ -165,7 +165,7 @@ function Get-ImmyGlobalSoftware
 	$Header =  @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/software/global"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 		
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/software/global" -Headers $Header -ErrorAction Stop
@@ -185,7 +185,7 @@ function Get-ImmyLocalSoftware
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/software/local"
-		"authorization" = "Bearer $token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/software/local" -Headers $Header
@@ -205,7 +205,7 @@ function Get-ImmyAuthInfo
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/auth"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/auth" -Headers $Header
@@ -225,7 +225,7 @@ function Get-ImmyAppPrefernce
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/preferences"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	} 
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/preferences"
@@ -266,7 +266,7 @@ function Get-ImmyGlobalTask
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/maintenance-tasks/global"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/maintenance-tasks/global" -Headers $Header -ErrorAction Stop
@@ -286,7 +286,7 @@ function Get-ImmyLocalTask
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/maintenance-tasks/local"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/maintenance-tasks/local" -Headers $Header -ErrorAction Stop
@@ -306,7 +306,7 @@ function Get-ImmyGlobalScript
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/scripts/global"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/scripts/global" -Headers $Header -ErrorAction Stop	
@@ -326,7 +326,7 @@ function Get-ImmyLocalScript
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/scripts/local"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/scripts/local" -Headers $Header -ErrorAction Stop
@@ -346,7 +346,7 @@ function Get-ImmySchedule
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/schedules"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/schedules" -Headers $Header -ErrorAction Stop
@@ -366,7 +366,7 @@ function Get-ImmyGlobalMedia
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/media/global"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	} 
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/media/global" -Headers $Header -ErrorAction Stop
@@ -386,7 +386,7 @@ function Get-ImmyLocalMedia
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/media/local"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	} 
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/media/local" -Headers $Header -ErrorAction Stop
@@ -410,7 +410,7 @@ function Get-ImmyActiveIntegration
     $Header =  @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/provider-links"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	if ($IncludeClients)
@@ -450,7 +450,7 @@ function Get-ImmyComputer
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/computers"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	if ($IncludeOffline)
@@ -477,7 +477,7 @@ function Get-ImmyPendingCount
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/provider-agents/pending-counts"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/provider-agents/pending-counts" -Headers $Header -ErrorAction Stop
@@ -501,7 +501,7 @@ function Get-ImmyPendingComputer
     $Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/computers/paged"
-		"authorization" = "Bearer $Token"
+		"authorization" = "Bearer $AuthToken"
 	}
 	
 	if ($OnboardingOnly)
