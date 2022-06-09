@@ -128,7 +128,7 @@ function Get-ImmySession
 		$RestParams = "sessionType=2"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/maintenance-sessions/dx?$RestParams" -Headers $Header -ErrorAction Stop | Select-Object -ExpandProperty data
+	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/maintenance-sessions/dx?$RestParams" -Headers $Header -ErrorAction Stop | Select-Object -ExpandProperty data
 }
 
 function Get-ImmySessionCount
@@ -168,7 +168,7 @@ function Get-ImmyGlobalSoftware
 		"authorization" = "Bearer $AuthToken"
 	}
 		
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/software/global" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/software/global" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyLocalSoftware
@@ -188,7 +188,7 @@ function Get-ImmyLocalSoftware
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/software/local" -Headers $Header
+	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/software/local" -Headers $Header
 }
 
 function Get-ImmyAuthInfo
@@ -208,7 +208,7 @@ function Get-ImmyAuthInfo
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/auth" -Headers $Header
+	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/auth" -Headers $Header
 }
 
 function Get-ImmyAppPrefernce
@@ -228,7 +228,7 @@ function Get-ImmyAppPrefernce
 		"authorization" = "Bearer $AuthToken"
 	} 
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/preferences"
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/preferences"
 }
 
 function Get-ImmyLicense
@@ -249,7 +249,7 @@ function Get-ImmyLicense
 		"authorization" = "Bearer $AuthToken"
 	} 
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/licenses" -Headers $Header
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/licenses" -Headers $Header
 }
 
 function Get-ImmyGlobalTask
@@ -269,7 +269,7 @@ function Get-ImmyGlobalTask
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/maintenance-tasks/global" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/maintenance-tasks/global" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyLocalTask
@@ -289,7 +289,7 @@ function Get-ImmyLocalTask
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/maintenance-tasks/local" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/maintenance-tasks/local" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyGlobalScript
@@ -309,7 +309,7 @@ function Get-ImmyGlobalScript
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/scripts/global" -Headers $Header -ErrorAction Stop	
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/scripts/global" -Headers $Header -ErrorAction Stop	
 }
 
 function Get-ImmyLocalScript
@@ -329,7 +329,7 @@ function Get-ImmyLocalScript
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/scripts/local" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/scripts/local" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmySchedule
@@ -349,7 +349,7 @@ function Get-ImmySchedule
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/schedules" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/schedules" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyGlobalMedia
@@ -369,7 +369,7 @@ function Get-ImmyGlobalMedia
 		"authorization" = "Bearer $AuthToken"
 	} 
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/media/global" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/media/global" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyLocalMedia
@@ -389,7 +389,7 @@ function Get-ImmyLocalMedia
 		"authorization" = "Bearer $AuthToken"
 	} 
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/media/local" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/media/local" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyActiveIntegration
@@ -431,7 +431,7 @@ function Get-ImmyActiveIntegration
 		$RestParams += "&includeUnlinkedClients=false"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/provider-links?$RestParams" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/provider-links?$RestParams" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyComputer
@@ -480,7 +480,7 @@ function Get-ImmyPendingCount
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/provider-agents/pending-counts" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/provider-agents/pending-counts" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyPendingComputer
@@ -522,7 +522,7 @@ function Get-ImmyPendingComputer
 		$RestParams += "&includeOffline=false"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/computers/paged?$RestParams" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/computers/paged?$RestParams" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyComputerInfo
@@ -599,7 +599,7 @@ function Get-ImmyComputerInfo
 		$RestParams += "&includeProviderAgentsDeviceUpdateFormData=false"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/computers/$($ImmyComputerID)?$RestParams" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/computers/$($ImmyComputerID)?$RestParams" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyComputerScreenShareLink
@@ -621,7 +621,7 @@ function Get-ImmyComputerScreenShareLink
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/computers/$ImmyComputerID/screen-share-urls/" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/computers/$ImmyComputerID/screen-share-urls/" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyComputerPendingConflict
@@ -643,7 +643,7 @@ function Get-ImmyComputerPendingConflict
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/provider-agents/$ImmyComputerID/pending-conflicts" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/provider-agents/$ImmyComputerID/pending-conflicts" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyComputerNeedsAttention
@@ -665,7 +665,7 @@ function Get-ImmyComputerNeedsAttention
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/maintenance-actions/computer/$ImmyComputerID/needs-attention" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/maintenance-actions/computer/$ImmyComputerID/needs-attention" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyComputerEvent
@@ -687,7 +687,7 @@ function Get-ImmyComputerEvent
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-WebRequest -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/computers/$ImmyComputerID/events" -Headers $Header -ErrorAction Stop
+	Invoke-WebRequest -UseBasicParsing -Uri "$APIEndpointUri/api/v1/computers/$ImmyComputerID/events" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyComputerSession
@@ -700,16 +700,64 @@ function Get-ImmyComputerSession
 		[validatescript({ $_ -ilike "https://*.immy.bot" })]
 		$ApiEndpointUri,
 		[parameter(Mandatory = $true)]
-		[int]$ImmyComputerID
+		[int]$ImmyComputerID,
+		[parameter()]
+		[switch]$IncludeComputer = $false,
+		[parameter()]
+		[switch]$includeTenant = $false,
+		[parameter()]
+		[switch]$IncludeStages = $false,
+		[parameter()]
+		[switch]$IncludeActions = $false,
+		[parameter()]
+		[switch]$IncludeLogs = $false
 	)
-	
+
 	$Header = @{
 		"method"	    = "GET"
-		"path"		    = "/api/v1/maintenance-sessions/dx?computerId=$ImmyComputerID"
+		"path"		    = "/api/v1/maintenance-sessions/$ImmyComputerID"
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/maintenance-sessions/dx?computerId=$ImmyComputerID&sessionType=2" -Headers $Header -ErrorAction Stop
+	$RestParams = "includeComputer=$IncludeComputer&includeTenant=$includeTenant&includeStages=$IncludeStages&includeLogs=$IncludeLogs"
+	<#
+	if ($IncludeComputer)
+	{
+		$RestParams = "includeComputer=true"
+	}
+	else
+	{
+		$RestParams = "includeComputer=false"
+	}
+	
+	if ($IncludeTenant)
+	{
+		$RestParams += "&includeTenant=true"
+	}
+	else
+	{
+		$RestParams += "&includeTenant=false"
+	}
+	
+	if ($IncludeStages)
+	{
+		$RestParmas += "&includeStages=true"
+	}
+	else
+	{
+		$RestParmas += "&includeStages=false"
+	}
+	
+	if ($IncludeLogs)
+	{
+		$RestParams += "&includeLogs=true"
+	}
+	else
+	{
+		$RestParams += "&includeLogs=false"
+	}
+	#>
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/maintenance-sessions/$($ImmyComputerID)?$($RestParams)" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyComputerOnlineStatus
@@ -731,7 +779,7 @@ function Get-ImmyComputerOnlineStatus
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/computers/$ImmyComputerID/status" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/computers/$ImmyComputerID/status" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyAppMetric
@@ -751,7 +799,7 @@ function Get-ImmyAppMetric
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/metrics/app" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/metrics/app" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyAppCircutBreakerStatus
@@ -771,7 +819,7 @@ function Get-ImmyAppCircutBreakerStatus
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/metrics/circuit-breakers" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/metrics/circuit-breakers" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyAzureContract
@@ -791,7 +839,7 @@ function Get-ImmyAzureContract
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/azure/contracts" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/azure/contracts" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyBranding
@@ -811,7 +859,7 @@ function Get-ImmyBranding
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/brandings" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/brandings" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyTenantSmtpConfig
@@ -833,7 +881,7 @@ function Get-ImmyTenantSmtpConfig
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/smtp-configs/$ImmyTenantID" -Headers $Headers -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/smtp-configs/$ImmyTenantID" -Headers $Headers -ErrorAction Stop
 }
 
 function Get-ImmyInventoryTask
@@ -853,11 +901,13 @@ function Get-ImmyInventoryTask
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/inventory-tasks" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/inventory-tasks" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyRelease
 {
+	# likely not working right now
+	
 	param
 	(
 		[parameter(Mandatory = $true)]
@@ -873,7 +923,29 @@ function Get-ImmyRelease
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-WebRequest -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/system/releases" -Headers $Header -ErrorAction Stop
+	Invoke-WebRequest -UseBasicParsing -Uri "$APIEndpointUri/api/v1/system/releases" -Headers $Header -ErrorAction Stop
+}
+
+function Get-ImmyComputerSoftware
+{
+	param
+	(
+		[parameter(Mandatory = $true)]
+		$AuthToken,
+		[parameter(Mandatory = $true)]
+		[validatescript({ $_ -ilike "https://*.immy.bot" })]
+		$ApiEndpointUri,
+		[parameter(Mandatory = $true)]
+		[int]$ImmyComputerID
+	)
+	
+	$Header = @{
+		"method"	    = "GET"
+		"path"		    = "/api/v1/computers/$ImmyComputerID/inventory-script-results/Software"
+		"authorization" = "Bearer $AuthToken"
+	}
+	
+	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/computers/$ImmyComputerID/inventory-script-results/Software" -Headers $Header -ErrorAction Stop
 }
 
 # New
@@ -906,7 +978,7 @@ function New-ImmyPerson
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/persons" -Headers $Header -Body $Body -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/persons" -Headers $Header -Body $Body -ErrorAction Stop
 }
 
 function New-ImmyLicense
@@ -939,7 +1011,7 @@ function New-ImmyLicense
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/licenses" -Headers $Header -Body $Body -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/licenses" -Headers $Header -Body $Body -ErrorAction Stop
 }
 
 # Delete
@@ -964,5 +1036,45 @@ function Remove-ImmyPerson
 		"authorization" = "Bearer $AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/persons/$ImmyPersonID" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/persons/$ImmyPersonID" -Headers $Header -ErrorAction Stop
+}
+
+# Invoke
+function Invoke-ImmyMaintenance
+{
+	param
+	(
+		[parameter(Mandatory = $true)]
+		$AuthToken,
+		[parameter(Mandatory = $true)]
+		[validatescript({ $_ -ilike "https://*.immy.bot" })]
+		$ApiEndpointUri,
+		[parameter(Mandatory = $true)]
+		[int]$ImmyComputerID,
+		[parameter()]
+		[switch]$runInventoryInDetection = $false,
+		[parameter()]
+		[switch]$detectionOnly = $false,
+		[parameter()]
+		[switch]$sendFollowUpEmail = $false,
+		[parameter()]
+		[switch]$suppressRebootsDuringBusinesshours = $false
+	)
+	
+	# reboot preference is set to suppress, need to get value for other two options
+	# need more information on onlyOnboardingOverridableTasks
+	# need more information on skipBackgroundJob
+	# need more information on cacheOnly
+	# offlineBehavior should be set to apply on connection but need to double check this
+	 
+	$Header = @{
+		"method"	    = "POST"
+		"path"		    = "/api/v1/run-immy-service"
+		"authorization" = "Bearer $AuthToken"
+	}
+	
+	# seperate this into multiple lines to avoid horizontal scrolling
+	$Body = "{`"tenants`":[],`"computers`":[{`"computerId`":$ImmyComputerID}],`"rebootPreference`":1,`"runInventoryInDetection`":$runInventoryInDetection,`"detectionOnly`":$detectionOnly,`"sendFollowUpEmail`":$sendFollowUpEmail,`"skipBackgroundJob`":false,`"cacheOnly`":false,`"fullMaintenance`":false,`"resolutionOnly`":false,`"offlineBehavior`":2,`"suppressRebootsDuringBusinesshours`":$suppressRebootsDuringBusinesshours,`"sendDetectionEmail`":false,`"sendFollowUpOnlyIfActionNeeded`":false,`"showRunNowButton`":false,`"showPostponeButton`":false,`"showMaintenanceActions`":false,`"onlyOnboardingOverridableTasks`":false}"
+	
+	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/run-immy-service" -Headers $Header -Body $Body -ErrorAction Stop
 }
