@@ -700,7 +700,7 @@ function Get-ImmyComputerSession
 		[validatescript({ $_ -ilike "https://*.immy.bot" })]
 		$ApiEndpointUri,
 		[parameter(Mandatory = $true)]
-		[int]$ImmyComputerID,
+		[int]$ImmySessionID,
 		[parameter()]
 		[switch]$IncludeComputer = $false,
 		[parameter()]
@@ -715,7 +715,7 @@ function Get-ImmyComputerSession
 
 	$Header = @{
 		"method"	    = "GET"
-		"path"		    = "/api/v1/maintenance-sessions/$ImmyComputerID"
+		"path"		    = "/api/v1/maintenance-sessions/$ImmySessionID"
 		"authorization" = "Bearer $AuthToken"
 	}
 	
@@ -757,7 +757,7 @@ function Get-ImmyComputerSession
 		$RestParams += "&includeLogs=false"
 	}
 	#>
-	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/maintenance-sessions/$($ImmyComputerID)?$($RestParams)" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/maintenance-sessions/$($ImmySessionID)?$($RestParams)" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyComputerOnlineStatus
