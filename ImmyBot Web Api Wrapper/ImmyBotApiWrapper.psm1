@@ -1,12 +1,12 @@
 ﻿# Get
-function Get-AuthToken
+function New-ImmyConnection
 {
 	<#
 	.SYNOPSIS
-		Gets an authentication token for ImmyBot
+		Authenticates to Immybot
 		
 	.DESCRIPTION
-		Authenticates to the provided ImmyBot instance and returns the authentication token generated
+		Authenticates to the provided ImmyBot instance and stores authentication token as a private variable
 		
 	.PARAMETER ip
 		IP address of the Home Assistant to connect to or homeassistant.local
@@ -41,27 +41,28 @@ function Get-AuthToken
 	Param (
 		[parameter(Mandatory = $true)]
 		[validatescript({ $_ -match "^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$" })]
-		$tenantId,
+		$AzureTenantId,
 		[parameter(Mandatory = $true)]
 		[validatescript({ $_ -match "^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$" })]
-		$applicationId,
+		$AzureApplicationId,
 		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -match "^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$" })]
-		$secret,
+		$AzureAppSecret,
 		[parameter(Mandatory = $true)]
 		[validatescript({$_ -ilike "https://*.immy.bot"})]
 		$ApiEndpointUri
 	)
-	$RequestAccessTokenUri = "https://login.microsoftonline.com/$tenantId/oauth2/token"
-	$body = "grant_type=client_credentials&client_id=$applicationId&client_secret=$Secret&resource=$apiEndpointUri"
+	$RequestAccessTokenUri = "https://login.microsoftonline.com/$AzureTenantId/oauth2/token"
+	$body = "grant_type=client_credentials&client_id=$AzureApplicationId&client_secret=$AzureAppSecret&resource=$apiEndpointUri"
 	$contentType = 'application/x-www-form-urlencoded'
 	try
 	{
 		Write-Verbose "Attempting to get access token..."
-		$AuthToken = Invoke-RestMethod -Method Post -Uri $RequestAccessTokenUri -Body $body -ContentType $contentType -ErrorAction Stop
-		Write-Verbose "Access token obtained. Token will expire in $([math]::Round($AuthToken.expires_in/60)) minutes"
-	
-		return $AuthToken.access_token	
+		$TokenInfo = Invoke-RestMethod -Method Post -Uri $RequestAccessTokenUri -Body $body -ContentType $contentType -ErrorAction Stop
+		Write-Output "Access token obtained. Token will expire in $([math]::Round($TokenInfo.expires_in/60)) minutes"
+		
+		Set-Variable -Name "Token_Exp" -Value $($(Get-date).AddMinutes($([math]::Round($TokenInfo.expires_in/60)))) -Visibility Private -Scope Script -Force
+		Set-Variable -Name "AuthToken" -Value $TokenInfo.access_token -Visibility Private -Scope Script -Force
+		Set-Variable -Name "ApiEndpointUri" -Value $TokenInfo.resource -Visibility Private -Scope Script -Force
 	}
 	catch
 	{
@@ -70,24 +71,30 @@ function Get-AuthToken
 	}
 }
 
+function Resolve-AuthToken
+{
+	<#
+	.DESCRIPTION:
+		Internal function to validate the authentication token being used is still valid
+	#>
+	
+	if ($(Get-date) -gt [datetime]$Script:Token_Exp)
+	{
+		Write-Warning "The authentication token has expired. Please run New-ImmyConnection again to get a fresh authentication token."; Throw
+	}
+}
+
 function Get-ImmyTenant
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
-		
+	Resolve-AuthToken
+	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/tenants"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 
-	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/tenants" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$Script:ApiEndpointUri/api/v1/tenants" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmySession
@@ -99,53 +106,81 @@ function Get-ImmySession
 		- take (int, ex: 20)
 		- requireTotalCount (boolean)
 		- sort (example value decoded: [{"selector":"id","desc":true}])
-		- filter (example value decoded: ["createdDate",">","05/02/2022 02:20:29"])
+		- filter also allows for filtering by date
 	#>
 	param
 	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
 		[parameter()]
-		[validateset("Cloud","Agent")]
-		$SessionType = "Agent"
+		[validateset("Cloud","Agent", "All")]
+		$SessionType = "All",
+		[parameter()]
+		[validateset("Running","Pending","Created","Completed","All")]
+		$FilterBy = "All"
 	)
-
+	
+	Resolve-AuthToken
+	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/maintenance-sessions/dx"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
-	if ($SessionType -eq "Cloud")
+	switch ($SessionType) {
+		"Cloud" {
+			$RestParams = "sessionType=1"
+			Write-Verbose "Rest parameters set to $RestParams"
+		}
+		"Agent" {
+			$RestParams = "sessionType=2"
+			Write-Verbose "Rest parameters set to $RestParams"
+		}
+	}
+	
+	# To do: provide more filter options. ex: filter by sessions with error(s) etc
+	# INCOMPLETE/NOT FUNCTIONING
+	switch ($FilterBy) {
+		"Running" {
+			$RawStringParam = 'filter=[["sessionStatus","=",1],"and",["createdDate",">","01/01/1970 00:00:00"]]'
+			$RestParams += [System.Web.HttpUtility]::UrlEncode($RawStringParam)
+			Write-Verbose "Rest parameters set to $RestParams"
+		}
+		"Pending" {
+			$RawStringParam = 'filter=[[["sessionStatus","=",6],"or",["sessionStatus","=",8]],"and",["createdDate",">","01/01/1970 00:00:00"]]'
+			$RestParams += [System.Web.HttpUtility]::UrlEncode($RawStringParam)
+			Write-Verbose "Rest parameters set to $RestParams"
+		}
+		"Created" {
+			$RawStringParam = 'filter=[["sessionStatus","=",3],"and",["createdDate",">","01/01/1970 00:00:00"]]'
+			$RestParams += [System.Web.HttpUtility]::UrlEncode($RawStringParam)
+			Write-Verbose "Rest parameters set to $RestParams"
+		}
+		"Completed" {
+			$RawStringParam = 'filter=[[["sessionStatus","=",0],"or",["sessionStatus","=",2],"or",["sessionStatus","=",7],"or",["sessionStatus","=",4],"or",["sessionStatus","=",5]],"and",["createdDate",">","01/01/1970 00:00:00"]]'
+			$RestParams += [System.Web.HttpUtility]::UrlEncode($RawStringParam)
+			Write-Verbose "Rest parameters set to $RestParams"
+		}
+	}
+	$boolCheck = [bool]$RestParams
+	
+	if ($boolCheck)
 	{
-		$RestParams = "sessionType=1"
+		Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/maintenance-sessions/dx?$RestParams" -Headers $Header -ErrorAction Stop
 	}
 	else
 	{
-		$RestParams = "sessionType=2"
-	}
-	
-	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/maintenance-sessions/dx?$RestParams" -Headers $Header -ErrorAction Stop | Select-Object -ExpandProperty data
+		Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/maintenance-sessions/dx" -Headers $Header -ErrorAction Stop
+	}	
 }
 
 function Get-ImmySessionCount
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 		
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/dashboard/session-counts"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/dashboard/session-counts" -Headers $Header -ErrorAction Stop
@@ -153,19 +188,12 @@ function Get-ImmySessionCount
 
 function Get-ImmyGlobalSoftware
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header =  @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/software/global"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 		
 	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/software/global" -Headers $Header -ErrorAction Stop
@@ -173,19 +201,12 @@ function Get-ImmyGlobalSoftware
 
 function Get-ImmyLocalSoftware
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/software/local"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/software/local" -Headers $Header
@@ -193,19 +214,12 @@ function Get-ImmyLocalSoftware
 
 function Get-ImmyAuthInfo
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/auth"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/auth" -Headers $Header
@@ -213,19 +227,12 @@ function Get-ImmyAuthInfo
 
 function Get-ImmyAppPrefernce
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/preferences"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	} 
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/preferences"
@@ -233,20 +240,12 @@ function Get-ImmyAppPrefernce
 
 function Get-ImmyLicense
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
-	
+	Resolve-AuthToken	
 	
 	$Header =  @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/licenses"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	} 
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/licenses" -Headers $Header
@@ -254,19 +253,12 @@ function Get-ImmyLicense
 
 function Get-ImmyGlobalTask
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/maintenance-tasks/global"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/maintenance-tasks/global" -Headers $Header -ErrorAction Stop
@@ -274,19 +266,12 @@ function Get-ImmyGlobalTask
 
 function Get-ImmyLocalTask
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/maintenance-tasks/local"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/maintenance-tasks/local" -Headers $Header -ErrorAction Stop
@@ -294,19 +279,12 @@ function Get-ImmyLocalTask
 
 function Get-ImmyGlobalScript
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/scripts/global"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/scripts/global" -Headers $Header -ErrorAction Stop	
@@ -314,19 +292,12 @@ function Get-ImmyGlobalScript
 
 function Get-ImmyLocalScript
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/scripts/local"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/scripts/local" -Headers $Header -ErrorAction Stop
@@ -334,19 +305,12 @@ function Get-ImmyLocalScript
 
 function Get-ImmySchedule
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/schedules"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/schedules" -Headers $Header -ErrorAction Stop
@@ -354,19 +318,12 @@ function Get-ImmySchedule
 
 function Get-ImmyGlobalMedia
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/media/global"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	} 
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/media/global" -Headers $Header -ErrorAction Stop
@@ -374,19 +331,12 @@ function Get-ImmyGlobalMedia
 
 function Get-ImmyLocalMedia
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/media/local"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	} 
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/media/local" -Headers $Header -ErrorAction Stop
@@ -396,21 +346,18 @@ function Get-ImmyActiveIntegration
 {
 	param
 	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
 		[parameter()]
 		[switch]$IncludeClients = $false,
 		[parameter()]
 		[switch]$IncludeUnlinkedClients = $false
 	)
 	
+	Resolve-AuthToken
+	
     $Header =  @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/provider-links"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	if ($IncludeClients)
@@ -438,46 +385,29 @@ function Get-ImmyComputer
 {
 	param
 	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
 		[parameter()]
-		[bool]$IncludeOffline = $false
+		[int]$ResultSize = 100000
 	)
+	
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
-		"path"		    = "/api/v1/computers"
-		"authorization" = "Bearer $AuthToken"
+		"path"		    = "/api/v1/computers?&pageSize=$ResultSize&orderByUpdatedDate=true&tenantId=null"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
-	if ($IncludeOffline)
-	{
-		Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/computers/paged?includeOffline=true" -Headers $Header -ErrorAction Stop
-	}
-	Else
-	{
-		Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/computers/paged?includeOffline=false" -Headers $Header -ErrorAction Stop
-	}
+	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/computers?&pageSize=$ResultSize&orderByUpdatedDate=true&tenantId=null" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyPendingCount
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/provider-agents/pending-counts"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/provider-agents/pending-counts" -Headers $Header -ErrorAction Stop
@@ -487,21 +417,18 @@ function Get-ImmyPendingComputer
 {
 	param
 	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
 		[parameter()]
 		[switch]$OnboardingOnly = $false,
 		[parameter()]
 		[switch]$IncludeOffline = $false
-	)	
+	)
+	
+	Resolve-AuthToken
 	
     $Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/computers/paged"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	if ($OnboardingOnly)
@@ -530,11 +457,6 @@ function Get-ImmyComputerInfo
 	param
 	(
 		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
-		[parameter(Mandatory = $true)]
 		[int]$ImmyComputerID,
 		[parameter()]
 		[switch]$IncludeSessions = $false,
@@ -548,10 +470,12 @@ function Get-ImmyComputerInfo
 		[switch]$IncludeProviderAgentsDeviceUpdateFormData = $false
 	)
 	
+	Resolve-AuthToken
+	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/computers/$ImmyComputerID"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	if ($IncludeSessions)
@@ -607,18 +531,15 @@ function Get-ImmyComputerScreenShareLink
 	param
 	(
 		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
-		[parameter(Mandatory = $true)]
 		[int]$ImmyComputerID
-	)	
+	)
+	
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/computers/$ImmyComputerID/screen-share-urls/"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/computers/$ImmyComputerID/screen-share-urls/" -Headers $Header -ErrorAction Stop
@@ -629,18 +550,15 @@ function Get-ImmyComputerPendingConflict
 	param
 	(
 		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
-		[parameter(Mandatory = $true)]
 		[int]$ImmyComputerID
 	)
+	
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/provider-agents/$ImmyComputerID/pending-conflicts"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/provider-agents/$ImmyComputerID/pending-conflicts" -Headers $Header -ErrorAction Stop
@@ -651,18 +569,15 @@ function Get-ImmyComputerNeedsAttention
 	param
 	(
 		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
-		[parameter(Mandatory = $true)]
 		[int]$ImmyComputerID
 	)
+	
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/maintenance-actions/computer/$ImmyComputerID/needs-attention"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/maintenance-actions/computer/$ImmyComputerID/needs-attention" -Headers $Header -ErrorAction Stop
@@ -673,18 +588,15 @@ function Get-ImmyComputerEvent
 	param
 	(
 		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
-		[parameter(Mandatory = $true)]
 		[int]$ImmyComputerID
 	)
 	
-   $Header = @{
+	Resolve-AuthToken
+	
+    $Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/computers/$ImmyComputerID/events"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-WebRequest -UseBasicParsing -Uri "$APIEndpointUri/api/v1/computers/$ImmyComputerID/events" -Headers $Header -ErrorAction Stop
@@ -694,11 +606,6 @@ function Get-ImmyComputerSession
 {
 	param
 	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
 		[parameter(Mandatory = $true)]
 		[int]$ImmySessionID,
 		[parameter()]
@@ -712,11 +619,13 @@ function Get-ImmyComputerSession
 		[parameter()]
 		[switch]$IncludeLogs = $false
 	)
-
+	
+	Resolve-AuthToken
+	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/maintenance-sessions/$ImmySessionID"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	$RestParams = "includeComputer=$IncludeComputer&includeTenant=$includeTenant&includeStages=$IncludeStages&includeLogs=$IncludeLogs"
@@ -765,18 +674,15 @@ function Get-ImmyComputerOnlineStatus
 	param
 	(
 		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
-		[parameter(Mandatory = $true)]
 		[int]$ImmyComputerID
 	)
+	
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/computers/$ImmyComputerID/status"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/computers/$ImmyComputerID/status" -Headers $Header -ErrorAction Stop
@@ -784,19 +690,12 @@ function Get-ImmyComputerOnlineStatus
 
 function Get-ImmyAppMetric
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)	
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/metrics/app"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/metrics/app" -Headers $Header -ErrorAction Stop
@@ -804,19 +703,12 @@ function Get-ImmyAppMetric
 
 function Get-ImmyAppCircutBreakerStatus
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/metrics/circuit-breakers"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/metrics/circuit-breakers" -Headers $Header -ErrorAction Stop
@@ -824,19 +716,12 @@ function Get-ImmyAppCircutBreakerStatus
 
 function Get-ImmyAzureContract
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/azure/contracts"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/azure/contracts" -Headers $Header -ErrorAction Stop
@@ -844,19 +729,12 @@ function Get-ImmyAzureContract
 
 function Get-ImmyBranding
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/brandings"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/brandings" -Headers $Header -ErrorAction Stop
@@ -866,19 +744,16 @@ function Get-ImmyTenantSmtpConfig
 {
 	param
 	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
 		[parameter()]
 		[int]$ImmyTenantID = 1
 	)
 	
+	Resolve-AuthToken
+	
 	$Headers = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/smtp-configs/$ImmyTenantID"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/smtp-configs/$ImmyTenantID" -Headers $Headers -ErrorAction Stop
@@ -886,19 +761,12 @@ function Get-ImmyTenantSmtpConfig
 
 function Get-ImmyInventoryTask
 {
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/inventory-tasks"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/inventory-tasks" -Headers $Header -ErrorAction Stop
@@ -908,19 +776,12 @@ function Get-ImmyRelease
 {
 	# likely not working right now
 	
-	param
-	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri
-	)
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/system/releases"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-WebRequest -UseBasicParsing -Uri "$APIEndpointUri/api/v1/system/releases" -Headers $Header -ErrorAction Stop
@@ -931,21 +792,50 @@ function Get-ImmyComputerSoftware
 	param
 	(
 		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
-		[parameter(Mandatory = $true)]
 		[int]$ImmyComputerID
 	)
+	
+	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
 		"path"		    = "/api/v1/computers/$ImmyComputerID/inventory-script-results/Software"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/computers/$ImmyComputerID/inventory-script-results/Software" -Headers $Header -ErrorAction Stop
+}
+
+function Get-ImmyComputerMaintenanceAction
+{
+	param
+	(
+		[parameter(Mandatory = $true)]
+		[int]$ImmyComputerID,
+		[parameter()]
+		[switch]$LatestForComputer = $false
+	)
+	
+	Resolve-AuthToken
+	
+	if ($LatestForComputer)
+	{
+		$Header = @{
+			"method" = "GET"
+			"path"   = "/api/v1/maintenance-actions/latest-for-computer/$ImmyComputerID"
+			"authorization" = "Bearer $Script:AuthToken"
+		}
+		$(Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/maintenance-actions/latest-for-computer/$ImmyComputerID" -Headers $Header -ErrorAction Stop) | Select-Object -ExpandProperty data
+	}
+	Else
+	{
+		$Header = @{
+			"method" = "GET"
+			"path"   = "/api/v1/maintenance-actions/dx-for-computer/$ImmyComputerID"
+			"authorization" = "Bearer $Script:AuthToken"
+		}
+		$(Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/maintenance-actions/dx-for-computer/$ImmyComputerID" -Headers $Header -ErrorAction Stop) | Select-Object -ExpandProperty data
+	}	
 }
 
 # New
@@ -953,11 +843,6 @@ function New-ImmyPerson
 {
 	param
 	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
 		[parameter(Mandatory = $true)]
 		$FirstName,
 		[parameter(Mandatory = $true)]
@@ -971,11 +856,13 @@ function New-ImmyPerson
 		$AzurePrincipalID
 	)
 	
+	Resolve-AuthToken
+	
 	$Body = "{`"firstName`":`"$FirstName`",`"lastName`":`"$LastName`",`"emailAddress`":`"$EmailAddress`",`"tenantId`":$ImmyTenantID,`"azurePrincipalId`":`"$AzurePrincipalID`"}"
 	$Header = @{
 		"method"	    = "POST"
 		"path"		    = "/api/v1/persons"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointUri/api/v1/persons" -Headers $Header -Body $Body -ErrorAction Stop
@@ -986,11 +873,6 @@ function New-ImmyLicense
 	param
 	(
 		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
-		[parameter(Mandatory = $true)]
 		$LicenseName,
 		[parameter(Mandatory = $true)]
 		$LicenseValue,
@@ -1000,6 +882,8 @@ function New-ImmyLicense
 		[int]$ImmyTenantID
 	)
 	
+	Resolve-AuthToken
+	
 	# need more info on software type/ more examples
 	# need an example with an uploaded file too
 	# need to add logic for locking to software version
@@ -1008,7 +892,7 @@ function New-ImmyLicense
 	$Header = @{
 		"method"	    = "POST"
 		"path"		    = "/api/v1/licenses"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/licenses" -Headers $Header -Body $Body -ErrorAction Stop
@@ -1020,20 +904,17 @@ function Remove-ImmyPerson
 	param
 	(
 		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
-		[parameter(Mandatory = $true)]
 		[int]$ImmyPersonID
 	)
+	
+	Resolve-AuthToken
 	
 	# Add support for confirm and or force common parameter
 	
 	$Header = @{
 		"method"	    = "DELETE"
 		"path"		    = "/api/v1/persons/15871"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/persons/$ImmyPersonID" -Headers $Header -ErrorAction Stop
@@ -1044,11 +925,6 @@ function Invoke-ImmyMaintenance
 {
 	param
 	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		[validatescript({ $_ -ilike "https://*.immy.bot" })]
-		$ApiEndpointUri,
 		[parameter(Mandatory = $true)]
 		[int]$ImmyComputerID,
 		[parameter()]
@@ -1061,6 +937,8 @@ function Invoke-ImmyMaintenance
 		[switch]$suppressRebootsDuringBusinesshours = $false
 	)
 	
+	Resolve-AuthToken
+	
 	# reboot preference is set to suppress, need to get value for other two options
 	# need more information on onlyOnboardingOverridableTasks
 	# need more information on skipBackgroundJob
@@ -1070,11 +948,60 @@ function Invoke-ImmyMaintenance
 	$Header = @{
 		"method"	    = "POST"
 		"path"		    = "/api/v1/run-immy-service"
-		"authorization" = "Bearer $AuthToken"
+		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
 	# seperate this into multiple lines to avoid horizontal scrolling
 	$Body = "{`"tenants`":[],`"computers`":[{`"computerId`":$ImmyComputerID}],`"rebootPreference`":1,`"runInventoryInDetection`":$runInventoryInDetection,`"detectionOnly`":$detectionOnly,`"sendFollowUpEmail`":$sendFollowUpEmail,`"skipBackgroundJob`":false,`"cacheOnly`":false,`"fullMaintenance`":false,`"resolutionOnly`":false,`"offlineBehavior`":2,`"suppressRebootsDuringBusinesshours`":$suppressRebootsDuringBusinesshours,`"sendDetectionEmail`":false,`"sendFollowUpOnlyIfActionNeeded`":false,`"showRunNowButton`":false,`"showPostponeButton`":false,`"showMaintenanceActions`":false,`"onlyOnboardingOverridableTasks`":false}"
 	
 	Invoke-RestMethod -UseBasicParsing -Uri "$ApiEndpointUri/api/v1/run-immy-service" -Headers $Header -Body $Body -ErrorAction Stop
+}
+
+# Special Cases
+function Remove-ImmySession
+{
+	# This is really how to cancel a session pending or running but cancel is not an approved verb
+	
+	param
+	(
+		[parameter(Mandatory = $true)]
+		[int]$ImmyComputerID
+	)
+	
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method"	    = "GET"
+		"path"		    = "/api/v1/maintenance-sessions/$ImmyComputerID/cancel"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/maintenance-sessions/$ImmyComputerID/cancel" -Headers $Header -ErrorAction Stop
+}
+
+function Set-ImmyComputerOnboardingSetting
+{
+	# this function is incomplete and untested. It may not function in its current form
+	param
+	(
+		[parameter(Mandatory = $true)]
+		[int]$ImmyComputerID,
+		[parameter(Mandatory = $True)]
+		[int]$AdditionalPersonsIDs,
+		[parameter(Mandatory = $True)]
+		[int]$ImmyTenantID,
+		[parameter(Mandatory = $True)]
+		$OnboardingStatus
+	)
+	
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method"	    = "PUT"
+		"path"		    = "/api/v1/computers/$ImmyComputerID"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	$Body = "{`"tenantId`":$ImmyTenantID,`"additionalPersonIds`":[$AdditionalPersonsIDs],`"onboardingStatus`":$OnboardingStatus,`"providerLinkUpdates`":[]}"
+	
+	Invoke-RestMethod -UseBasicParsing -Uri "$APIEndpointURI/api/v1/computers/$ImmyComputerID" -Headers $Header -Body $Body -ErrorAction Stop
 }
