@@ -17,5 +17,4 @@ Alternatively download and import the module using Import-Module
 - Provide function for all valid 'New' endpoints (ex: new immy user)
 - Provide function for all valid 'Invoke' endpoints (ex: re-run maintenance on an immy computer)
 - Allow pipeline input
-- Allow optionally saving authToken and apiEndpointUri in memory so its not needed as a parameter for each function
 - Create auto complete options for various function parameters (ex: ImmyComputerID)
