@@ -1,6 +1,6 @@
 # API Endpoints
 Very basic information on API endpoints I have discovered while creating this module. More information will be added as I work on the module including parameters for endpoints when applicable.
-|              endpoint |                       Description  (Get method)     |
+|              Endpoint |                       Description  (Get method)     |
 |-----------------------|-----------------------------------------------------|
 |/api/v1/tenants        | Returns Tenants and their details |
 |/api/v1/maintenance-sessions/dx | Returns sessions and their details |
