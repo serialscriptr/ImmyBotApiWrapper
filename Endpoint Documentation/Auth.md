@@ -18,7 +18,7 @@ isImmense               : False
 devInstanceDetails      :
 localSoftwareEndpoint   : <*IMMY INSTANCE LOCAL SOFTWARE STORE*>
 globalSoftwareEndpoint  : https://immybot.blob.core.windows.net/
-cspAppId                : \*\*\*\*\*\*\*\*-\*\*\*\*-\*\*\*\*-\*\*\*\*-\*\*\*\*\*\*\*\*\*\*\*\*
+cspAppId                : ********-****-****-****-************
 azurePermissionLevel    : 2
 status                  : 1
 trialStartUtc           : 2021-03-10T15:59:47Z

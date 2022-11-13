@@ -6,7 +6,8 @@
 ## Endpoint Parameters
 > none/default
 ## Example output
-> name                        : Topaz E-Signature Driver
+```sh
+name                        : Topaz E-Signature Driver
 licenseRequirement          : 0
 installOrder                : 0
 hidden                      : False
@@ -60,3 +61,4 @@ dynamicVersionsScriptId     :
 dynamicVersionsScriptType   :
 downloadInstallerScriptId   :
 downloadInstallerScriptType :
+```

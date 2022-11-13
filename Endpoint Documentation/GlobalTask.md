@@ -6,7 +6,8 @@
 ## Endpoint Parameters
 > none/default
 ## Example output
->id                      : 387
+```sh
+id                      : 387
 name                    : Remove Desktop Icons
 maintenanceTaskCategory : 0
 databaseType            : 0
@@ -41,3 +42,4 @@ isConfigurationTask     : False
 iconMediaId             :
 executeSerially         : False
 notes                   :
+```

@@ -6,7 +6,8 @@
 ## Endpoint parameters
 > none/default
 ## Example output
-> name                        : Splashtop Streamer
+```sh
+name                        : Splashtop Streamer
 licenseRequirement          : 0
 installOrder                : 0
 hidden                      : False
@@ -67,3 +68,4 @@ dynamicVersionsScriptId     :
 dynamicVersionsScriptType   : 0
 downloadInstallerScriptId   :
 downloadInstallerScriptType : 0
+```

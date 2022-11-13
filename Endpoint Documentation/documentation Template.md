@@ -6,4 +6,5 @@
 ## Endpoint Parameters
 >
 ## Example output
->
+```sh
+```

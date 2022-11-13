@@ -6,7 +6,8 @@
 ## Endpoint Parameters
 > none/default
 ## Example output
->id                                        : 1
+```sh
+id                                        : 1
 enableOnboarding                          : True
 enableAzureUserSync                       : True
 defaultEmailBccList                       : @{emails=System.Object[]}
@@ -29,3 +30,4 @@ immyScriptPath                            : <*UNIQUE SCRIPT PATH*>
 enableRequestAccess                       : True
 enableEphemeralAgentDebugMode             : False
 allowNCentralIntegration                  : False
+```

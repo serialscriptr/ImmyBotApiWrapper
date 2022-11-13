@@ -11,7 +11,8 @@
 >  filter example for "created" sessions : filter=[["sessionStatus","=",3],"and",["createdDate",">","01/01/1970 00:00:00"]]
 >  filter example for "completed" sessions : filter=[["sessionStatus","=",0],"or",["sessionStatus","=",2],"or",["sessionStatus","=",7],"or",["sessionStatus","=",4],"or",["sessionStatus","=",5]]
 # Example ouput
-> id                      : 102056
+```sh
+id                      : 102056
 statusName              : Passed
 sessionStatus           : 0
 computerName            : WIN11-TESTER
@@ -36,3 +37,4 @@ primaryPersonEmail      :
 scheduleId              : 12
 fullMaintenance         : False
 scheduledExecutionDate  :
+```
