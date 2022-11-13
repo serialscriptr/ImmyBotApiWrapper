@@ -6,10 +6,10 @@
 ## Endpoint Parameters
 > **sessionType** : valid values are 1 or 2. 1 refers to cloud sessions and 2 refers to agent sessions
 > **filter** : filter contains the following sub parameters: **createdDate**, **sessionStatus**
->  filter example for "running" sessions : filter=[["sessionStatus","=",1],"and",["createdDate",">","01/01/1970 00:00:00"]]
->  filter example for "pending" sessions : filter=[["sessionStatus","=",6],"or",["sessionStatus","=",8]]
->  filter example for "created" sessions : filter=[["sessionStatus","=",3],"and",["createdDate",">","01/01/1970 00:00:00"]]
->  filter example for "completed" sessions : filter=[["sessionStatus","=",0],"or",["sessionStatus","=",2],"or",["sessionStatus","=",7],"or",["sessionStatus","=",4],"or",["sessionStatus","=",5]]
+- filter example for "running" sessions : filter=[["sessionStatus","=",1],"and",["createdDate",">","01/01/1970 00:00:00"]]
+- filter example for "pending" sessions : filter=[["sessionStatus","=",6],"or",["sessionStatus","=",8]]
+- filter example for "created" sessions : filter=[["sessionStatus","=",3],"and",["createdDate",">","01/01/1970 00:00:00"]]
+- filter example for "completed" sessions : filter=[["sessionStatus","=",0],"or",["sessionStatus","=",2],"or",["sessionStatus","=",7],"or",["sessionStatus","=",4],"or",["sessionStatus","=",5]]
 # Example ouput
 ```sh
 id                      : 102056
