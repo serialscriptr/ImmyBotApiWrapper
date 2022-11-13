@@ -802,6 +802,40 @@ function Get-ImmyRecommendedDeployment
 	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/target-assignments/recommended-approvalss" -Headers $Header -ErrorAction Stop
 }
 
+function Get-ImmyPendingConflict
+{
+	[CmdletBinding()]
+	param (
+		[Parameter()]
+		[switch]$IncludeOffline = $false,
+		[Parameter(HelpMessage = "How many devices are returned")]
+		[int]$Limit = 10
+	)
+	
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method" = "GET"
+		"path"   = "/api/v1/provider-agents/pending?skip=0&sort=dateAdded&sortDesc=false&take=$limit&includeOffline=$IncludeOffline"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -UseBasicParsing -Uri "$Script:ApiEndpointUri/api/v1/provider-agents/pending?skip=0&sort=dateAdded&sortDesc=false&take=$limit&includeOffline=$IncludeOffline" -Headers $Header -ErrorAction Stop
+}
+
+function Get-ImmyTag
+{
+	Resolve-AuthToken
+	
+	$Headers = @{
+		"method"			 = "GET"
+		"path"			     = "/api/v1/tags"
+		"authorization"	     = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -Method Get -Uri "$script:ApiEndpointUri/api/v1/tags" -Headers $Headers
+}
+
 # New
 function New-ImmyPerson
 {
@@ -1182,6 +1216,21 @@ function Invoke-ImmyMaintenance
 	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/run-immy-service" -Headers $Header -Body $Body -ErrorAction Stop
 }
 
+function Invoke-ImmyOnboarding
+{
+	param
+	(
+		[parameter(Mandatory = $true)]
+		[int]$ImmyComputerID
+	)
+	
+	# INCOMPLETE
+	
+	Set-NeedsToBeOnboarded -ImmyDeviceID $ImmyComputerID
+	Set-ImmyComputerOnboardingSetting -ImmyComputerID $ImmyComputerID
+	Invoke-ImmyMaintenance -ImmyComputerID $ImmyComputerID
+}
+
 # Set
 function Set-ImmyComputerOnboardingSetting
 {
@@ -1210,6 +1259,58 @@ function Set-ImmyComputerOnboardingSetting
 	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/computers/$ImmyComputerID" -Headers $Header -Body $Body -ErrorAction Stop
 }
 
+function Set-NeedsToBeOnboarded
+{
+	param
+	(
+		[parameter(Mandatory = $true)]
+		[int]$ImmyComputerID
+	)
+	
+	$Headers = @{
+		"authority" = "$Script:APIEndpointUri"
+		"method"    = "POST"
+		"path"	    = "/api/v1/computers/$ImmyComputerID/set-to-needs-onboarding"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -Method POST -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/computers/$ImmyComputerID/set-to-needs-onboarding" -Headers $Headers
+}
+
+function Set-ImmyPendingConflict
+{
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $True)]
+		[int]$ConflictID,
+		[Parameter(Mandatory = $true)]
+		[validateSet("Wiped", "Cloned", "Reinstalled")]
+		[string]$Resolution
+	)
+	
+	# manualResolutionDescision
+	# 0 - Wiped
+	# 1 - Cloned
+	# 2 - Agent reinstalled
+	
+	Resolve-AuthToken
+	
+	switch ($Resolution)
+	{
+		"Wiped" { $res = 0 }
+		"Cloned" { $res = 2 }
+		"Reinstalled" { $res = 1 }
+	}
+	
+	$Header = @{
+		"method" = "POST"
+		"path"   = "/api/v1/provider-agents/resolve-failure/$ConflictID?manualResolutionDecision=$res"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -Method Post -UseBasicParsing -Uri "$Script:ApiEndpointUri/api/v1/provider-agents/resolve-failure/$ConflictID?manualResolutionDecision=$res" -Headers $Header -ErrorAction Stop
+}
+
 # Internal functions
 function Resolve-AuthToken
 {
@@ -1227,18 +1328,18 @@ function Resolve-AuthToken
 	
 	if ($Check)
 	{
-		if ($(Get-date) -gt [datetime]$Script:Token_Exp)
+		if ($(Get-date) -gt $([datetime]$Script:Token_Exp))
 		{
 			return $False
 		}
 		else
 		{
 			return $True
-		}
+		}	
 	}
 	else
 	{
-		if ($(Get-date) -gt [datetime]$Script:Token_Exp)
+		if ($(Get-date) -gt $([datetime]$Script:Token_Exp))
 		{
 			Write-Warning "The authentication token has expired. Please run New-ImmyConnection again to get a fresh authentication token."; Throw
 		}
