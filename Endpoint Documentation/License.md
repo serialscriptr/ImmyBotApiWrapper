@@ -1,6 +1,8 @@
 # License Endpoint
 ## API Endpoint
 > /api/v1/licenses
+## Description
+> Returns an array of licenses configured in the Immybot instance and information about them
 ## Method
 > GET
 ## Endpoint parameters
