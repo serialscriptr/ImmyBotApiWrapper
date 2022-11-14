@@ -6,7 +6,7 @@
 ## Method
 > GET
 ## Endpoint Parameters
-- **ImmyComputerID** : integer, not a rest parameter, this is part of the endpoint URL. The Immybot id of the computer to get infromation about
+- **ImmyComputerID** : (*Mandatory*) integer, not a rest parameter, this is part of the endpoint URL. The Immybot id of the computer to get infromation about
 - **includeSessions** : boolean, determines if sessions for the computer should be included in the information returned
 - **includeAdditionalPersons** : boolean, determines if additional persons assigned to the device should be included in the information returned
 - **includeActions** : boolean

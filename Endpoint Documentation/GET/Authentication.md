@@ -5,10 +5,10 @@ Once you create an azure enterprise application you need to create a new "person
 Once you have the user created you need to make that 'person' a 'user.' You can keep the user as non admin if you want a mostly read only user, otherwise make the user an admin.
 
 > Now to authenticate you will need the following parameters:
-- **AzureTenantId** : your msp azure tenant's id
-- **AzureApplicationId** : the application id for the application you created earlier
-- **AzureAppSecret** : the application secret for the application created earlier
-- **APIEndpointUri** : the Immybot instance URL Ex: `https://*.immy.bot`
+- **AzureTenantId** : (*Mandatory*) string, your msp azure tenant's id
+- **AzureApplicationId** : (*Mandatory*) string, the application id for the application you created earlier
+- **AzureAppSecret** : (*Mandatory*) string, the application secret for the application created earlier
+- **APIEndpointUri** : (*Mandatory*) string, the Immybot instance URL Ex: `https://*.immy.bot`
 > The bearer token returned by authenticating to the following URL is used to successfully run API queries
 ## Authentication URL
 > `https://login.microsoftonline.com/$AzureTenantId/oauth2/token`

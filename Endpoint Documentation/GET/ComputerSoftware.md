@@ -6,7 +6,7 @@
 ## Method
 > GET
 ## Endpoint Parameters
-- **ImmyComputerID** - integer, not actually a parameter as its part of the endpoint URL. The Immybot computer id to get information about
+- **ImmyComputerID** - (*Mandatory*) integer, not actually a parameter as its part of the endpoint URL. The Immybot computer id to get information about
 ## Example output
 > Example output without being expanded
 ```sh

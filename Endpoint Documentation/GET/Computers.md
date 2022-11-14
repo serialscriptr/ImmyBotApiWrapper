@@ -6,9 +6,9 @@
 ## Method
 > GET
 ## Endpoint Parameters
-- orderByUpdatedDate : boolean
-- tenantId : integer, optional parameter to filter the query by a specific tenant. Valid values are any tenants ids found in the Immybot instance
-- pageSize : integer, how many computers are returned
+- **orderByUpdatedDate** : boolean
+- **tenantId** : integer, optional parameter to filter the query by a specific tenant. Valid values are any tenants ids found in the Immybot instance
+- **pageSize** : integer, how many computers are returned
 ## Example output
 ```sh
 id                     : 1446
