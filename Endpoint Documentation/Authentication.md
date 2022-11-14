@@ -26,3 +26,4 @@ not_before     : 1668386161
 resource       : https://*.immy.bot
 access_token   : <*BEARER TOKEN VALUE*>
 ```
+> By default the bearer token expires in 60 minutes as shown in the 'expires_in' field shown in seconds
