@@ -7,7 +7,7 @@ Use this project at your own risk especially if you are not exclusively running 
 I learn about the ImmyBot API through trial and error.
 
 # Endpoint Documentation
-To assist others who just want some documentation on the API as there is no official documentation (yet) I have started to document endpoints that I know of [here](https://github.com/serialscriptr/ImmyBotApiWrapper/tree/main/Endpoint%20Documentation/GET)
+To assist others who just want some documentation on the API as there is no official documentation (yet) I have started to document endpoints that I know of [here](https://github.com/serialscriptr/ImmyBotApiWrapper/tree/main/Endpoint%20Documentation/GET). Note that the names of the endpoints in my documentation are not official.
 
 # Running the module
 For a quick way to load the module's functions into memory run the following
