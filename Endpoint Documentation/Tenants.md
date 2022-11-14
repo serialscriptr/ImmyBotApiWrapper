@@ -1,6 +1,8 @@
 # Tenants endpoint
 ## API Endpoint
 > /api/v1/tenants
+## Description
+> Returns an array of tenants from the Immybot instance and various information about them
 ## Method
 > GET
 ## Endpoint parameters

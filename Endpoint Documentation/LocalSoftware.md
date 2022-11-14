@@ -1,6 +1,8 @@
 # Software (Local) Endpoint
 ## API Endpoint
 > /api/v1/software/local
+## Description
+> Returns an array of the software in the Imymbot instance's local repository and various infomation about them
 ## Method
 > GET
 ## Endpoint Parameters

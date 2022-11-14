@@ -1,6 +1,8 @@
 # Software (Global) endpoint
 ## API Endpoint
 > /api/v1/software/global
+## Description
+> Returns an array of the software in the Imymbot global repository and various infomation about them
 ## Method
 > GET
 ## Endpoint parameters

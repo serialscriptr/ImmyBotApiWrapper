@@ -1,6 +1,8 @@
 # Auth Endpoint
 ## API Endpoint
 > /api/v1/auth
+## Description
+> shows some information about the api user (authenticated user) and some basic information about the Immybot instance
 ## Method
 > GET
 ## Endpoint parameters

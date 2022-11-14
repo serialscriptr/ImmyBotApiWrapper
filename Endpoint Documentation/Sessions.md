@@ -1,11 +1,14 @@
 # Sessions Endpoint
 ## API Endpoint
 > /api/v1/maintenance-sessions/dx
+## Description
+> Returns information about various sessions from the Immybot instance
 ## Method
 > GET
 ## Endpoint Parameters
 > **sessionType** : valid values are 1 or 2. 1 refers to cloud sessions and 2 refers to agent sessions
 > **filter** : filter contains the following sub parameters: **createdDate**, **sessionStatus**
+> *Note that all parameter values should be URL encoded and the following examples are not URL encoded:
 - filter example for "running" sessions : filter=[["sessionStatus","=",1],"and",["createdDate",">","01/01/1970 00:00:00"]]
 - filter example for "pending" sessions : filter=[["sessionStatus","=",6],"or",["sessionStatus","=",8]]
 - filter example for "created" sessions : filter=[["sessionStatus","=",3],"and",["createdDate",">","01/01/1970 00:00:00"]]

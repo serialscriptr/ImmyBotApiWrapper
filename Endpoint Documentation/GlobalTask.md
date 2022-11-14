@@ -1,6 +1,8 @@
 # Maintenance Task (Global) Endpoint
 ## API Endpoint
 > /api/v1/maintenance-tasks/global
+## Description
+> Returns an array of maintenance tasks from the global Immybot maintenance task repository and various information about them
 ## Method
 > GET
 ## Endpoint Parameters

@@ -1,6 +1,8 @@
 # Preferences Endpoint
 ## API Endpoint
 > /api/v1/preferences
+## Description
+> Returns information about configured settings in the Immybot instance
 ## Method
 > GET
 ## Endpoint Parameters

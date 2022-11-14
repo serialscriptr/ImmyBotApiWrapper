@@ -1,6 +1,8 @@
 # Session Count Endpoint
 ## API Endpoint
 > /api/v1/dashboard/session-counts
+## Description
+> Returns a total count of the various session types
 ## Method
 > GET
 ## Endpoint Parameters
