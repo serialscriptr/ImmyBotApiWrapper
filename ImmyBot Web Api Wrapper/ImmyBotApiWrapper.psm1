@@ -1108,14 +1108,17 @@ function New-ImmyAgent
 		[int[]]$AdditonalPersonsID,
 		[parameter(Mandatory = $true)]
 		$ImmyTenantID,
-		[parameter()]
+		[parameter(ParameterSetName = "AutoOnboard")]
 		[ValidateSet("true", "false")]
 		$AutoOnboard = "true",
 		[parameter()]
 		$PrimaryPersonID = "null",
 		[parameter()]
 		[ValidateSet("true", "false")]
-		$SendFollowUpEmail = "true"
+		$SendFollowUpEmail = "true",
+		[parameter(ParameterSetName = "AutoOnboard")]
+		[ValidateSet("Suppress", "If Needed", "Force")]
+		$RebootPreference = "If Needed"
 	)
 	
 	Resolve-AuthToken
@@ -1136,12 +1139,24 @@ function New-ImmyAgent
 		$AdditonalPersonsID = "null"
 	}
 	
+	switch ($RebootPreference) {
+		"If Needed" {
+			$RebootCode = 0
+		}
+		"Suppress" {
+			$RebootCode = 1
+		}
+		"Force" {
+			$RebootCode = '-1'
+		}
+	}
+	
 	$Headers = @{
 		"method"	    = "POST"
 		"path"		    = "/api/v1/provider-links/1/agents/executable-uri-with-onboarding"
 		"authorization" = "Bearer $Script:AuthToken"
 	}
-	$Body = "{`"targetExternalClientId`":$ImmyTenantID,`"onboardingOptions`":{`"primaryPersonId`":$PrimaryPersonID,`"additionalPersonIds`":$AdditionalPersonsID,`"automaticallyOnboard`":$AutoOnboard,`"onboardingSessionSendFollowUpEmail`":$SendFollowUpEmail,`"onboardingCorrelationId`":`"ee19d00c-c06c-44c8-8a4e-13528595ee1a`",`"onboardingSessionRebootPreference`":0}}"
+	$Body = "{`"targetExternalClientId`":$ImmyTenantID,`"onboardingOptions`":{`"primaryPersonId`":$PrimaryPersonID,`"additionalPersonIds`":$AdditionalPersonsID,`"automaticallyOnboard`":$AutoOnboard,`"onboardingSessionSendFollowUpEmail`":$SendFollowUpEmail,`"onboardingCorrelationId`":`"$(New-Guid)`",`"onboardingSessionRebootPreference`":$RebootCode}}"
 	Invoke-RestMethod -method Post -UseBasicParsing -Uri "$script:ApiEndpointUri/api/v1/provider-links/1/agents/executable-uri-with-onboarding" -Headers $Headers -Body $Body -ContentType "application/json;charset=UTF-8" -ErrorAction Stop
 }
 

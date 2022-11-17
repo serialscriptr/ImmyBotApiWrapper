@@ -26,3 +26,6 @@
 ```sh
 https://immybot.blob.core.windows.net/azure-bundle-exes/**************/ImmyAgentInstallerBundle.exe?**********************************************
 ```
+> the exe can be silently installed by using the following parameters:
+- /qn automaticallyOnboard=<'true/false'> /lv <'log file path'>
+> while the exe accepts the 'automaticallyOnboard' parameter I am unsure if it overrides the option set when generating the installer
