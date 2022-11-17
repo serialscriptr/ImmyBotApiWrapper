@@ -1102,26 +1102,39 @@ function New-ImmyConnection
 
 function New-ImmyAgent
 {
-	# TODO: Provide ability to generate more than exe installer
 	param
 	(
-		[parameter(Mandatory = $true)]
-		$AuthToken,
-		[parameter(Mandatory = $true)]
-		$AdditonalPersonsID,
+		[parameter()]
+		[int[]]$AdditonalPersonsID,
 		[parameter(Mandatory = $true)]
 		$ImmyTenantID,
-		[parameter(Mandatory = $false)]
+		[parameter()]
 		[ValidateSet("true", "false")]
 		$AutoOnboard = "true",
-		[parameter(Mandatory = $false)]
+		[parameter()]
 		$PrimaryPersonID = "null",
-		[parameter(Mandatory = $false)]
+		[parameter()]
 		[ValidateSet("true", "false")]
 		$SendFollowUpEmail = "true"
 	)
 	
 	Resolve-AuthToken
+	
+	if ([bool]$AdditonalPersonsID)
+	{
+		if ($AdditonalPersonsID.count -gt 1)
+		{
+			$AdditonalPersonsID = "[$($AdditonalPersonsID -join '')]"
+		}
+		else
+		{
+			$AdditonalPersonsID = "[$AdditonalPersonsID]"
+		}
+	}
+	else
+	{
+		$AdditonalPersonsID = "null"
+	}
 	
 	$Headers = @{
 		"method"	    = "POST"
