@@ -1,4 +1,4 @@
-# Authentication Endpoint
+# Authentication
 ## Description
 First follow the guide on setting up an azure enterprise application on the official Immybot webesite [here](https://docs.immy.bot/csp-preconsent-instructions.html#create-an-app-registration)
 Once you create an azure enterprise application you need to create a new "person" in your Immybot instance. The AD External ID will be the object id of the azure enterprise application you just created.
