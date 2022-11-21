@@ -1,4 +1,4 @@
-# ImmyBot (UnOfficial) API Documentation
+# ImmyBot API (UnOfficial) Documentation
 
 Please open an issue if you find anything here is incorrect or needs to be updated. Everything is stil a work in progress and not all API endpoints are documented yet.
 
