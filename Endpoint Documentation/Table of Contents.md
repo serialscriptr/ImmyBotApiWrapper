@@ -55,6 +55,14 @@ Please open an issue if you find anything here is incorrect or needs to be updat
  
 </details>
 
+## Computers
+<details>
+  <summary>Click me</summary>
+  
+  - [Get Computers](https://github.com/serialscriptr/ImmyBotApiWrapper/blob/main/Endpoint%20Documentation/GET/Computers.md)
+ 
+</details>
+
 ## Tenants
 <details>
   <summary>Click me</summary>
