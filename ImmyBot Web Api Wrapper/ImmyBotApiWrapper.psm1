@@ -101,30 +101,23 @@ function Get-ImmySessionCount
 	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/dashboard/session-counts" -Headers $Header -ErrorAction Stop
 }
 
-function Get-ImmyGlobalSoftware
+function Get-ImmySoftware
 {
-	Resolve-AuthToken
+	param (
+		[parameter()]
+		[validateset("global", "local")]
+		$SoftwareType = "global"
+	)
 	
-	$Header =  @{
-		"method"	    = "GET"
-		"path"		    = "/api/v1/software/global"
-		"authorization" = "Bearer $Script:AuthToken"
-	}
-		
-	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/software/global" -Headers $Header -ErrorAction Stop
-}
-
-function Get-ImmyLocalSoftware
-{
 	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
-		"path"		    = "/api/v1/software/local"
+		"path"		    = "/api/v1/software/$SoftwareType"
 		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/software/local" -Headers $Header
+	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/software/$SoftwareType" -Headers $Header
 }
 
 function Get-ImmyAuthInfo
@@ -166,56 +159,42 @@ function Get-ImmyLicense
 	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/licenses" -Headers $Header
 }
 
-function Get-ImmyGlobalTask
+function Get-ImmyTask
 {
+	param (
+		[parameter()]
+		[validateset("global","local")]
+		$TaskType = "global"
+	)
+	
 	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
-		"path"		    = "/api/v1/maintenance-tasks/global"
+		"path"		    = "/api/v1/maintenance-tasks/$TaskType"
 		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/maintenance-tasks/global" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/maintenance-tasks/$TaskType" -Headers $Header -ErrorAction Stop
 }
 
-function Get-ImmyLocalTask
+function Get-ImmyScript
 {
+	Param (
+		[parameter()]
+		[validateset("global","local")]
+		$ScriptType = "global"
+	)
+	
 	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
-		"path"		    = "/api/v1/maintenance-tasks/local"
+		"path"		    = "/api/v1/scripts/$ScriptType"
 		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/maintenance-tasks/local" -Headers $Header -ErrorAction Stop
-}
-
-function Get-ImmyGlobalScript
-{
-	Resolve-AuthToken
-	
-	$Header = @{
-		"method"	    = "GET"
-		"path"		    = "/api/v1/scripts/global"
-		"authorization" = "Bearer $Script:AuthToken"
-	}
-	
-	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/scripts/global" -Headers $Header -ErrorAction Stop	
-}
-
-function Get-ImmyLocalScript
-{
-	Resolve-AuthToken
-	
-	$Header = @{
-		"method"	    = "GET"
-		"path"		    = "/api/v1/scripts/local"
-		"authorization" = "Bearer $Script:AuthToken"
-	}
-	
-	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/scripts/local" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/scripts/$ScriptType" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmySchedule
@@ -231,30 +210,23 @@ function Get-ImmySchedule
 	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/schedules" -Headers $Header -ErrorAction Stop
 }
 
-function Get-ImmyGlobalMedia
+function Get-ImmyMedia
 {
+	param (
+		[parameter()]
+		[validateset("global", "local")]
+		$MediaType = "global"
+	)
+	
 	Resolve-AuthToken
 	
 	$Header = @{
 		"method"	    = "GET"
-		"path"		    = "/api/v1/media/global"
+		"path"		    = "/api/v1/media/$MediaType"
 		"authorization" = "Bearer $Script:AuthToken"
-	} 
+	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/media/global" -Headers $Header -ErrorAction Stop
-}
-
-function Get-ImmyLocalMedia
-{
-	Resolve-AuthToken
-	
-	$Header = @{
-		"method"	    = "GET"
-		"path"		    = "/api/v1/media/local"
-		"authorization" = "Bearer $Script:AuthToken"
-	} 
-	
-	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/media/local" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/media/$MediaType" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyActiveIntegration
@@ -296,25 +268,6 @@ function Get-ImmyActiveIntegration
 	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/provider-links?$RestParams" -Headers $Header -ErrorAction Stop
 }
 
-function Get-ImmyComputer
-{
-	param
-	(
-		[parameter()]
-		[int]$ResultSize = 100000
-	)
-	
-	Resolve-AuthToken
-	
-	$Header = @{
-		"method"	    = "GET"
-		"path"		    = "/api/v1/computers?&pageSize=$ResultSize&orderByUpdatedDate=true&tenantId=null"
-		"authorization" = "Bearer $Script:AuthToken"
-	}
-	
-	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/computers?&pageSize=$ResultSize&orderByUpdatedDate=true&tenantId=null" -Headers $Header -ErrorAction Stop
-}
-
 function Get-ImmyPendingCount
 {
 	Resolve-AuthToken
@@ -328,14 +281,20 @@ function Get-ImmyPendingCount
 	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/provider-agents/pending-counts" -Headers $Header -ErrorAction Stop
 }
 
-function Get-ImmyPendingComputer
+function Get-ImmyComputer
 {
 	param
 	(
 		[parameter()]
 		[switch]$OnboardingOnly = $false,
 		[parameter()]
-		[switch]$IncludeOffline = $false
+		[switch]$IncludeOffline = $false,
+		[parameter()]
+		[string]$filter,
+		[parameter()]
+		[switch]$StaleOnly = $false,
+		[parameter()]
+		[int]$ResultSize = 100000
 	)
 	
 	Resolve-AuthToken
@@ -346,6 +305,11 @@ function Get-ImmyPendingComputer
 		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
+	if ($OnboardingOnly -and $StaleOnly)
+	{
+		Write-Warning "OnboardingOnly and StaleOnly are mutually exclusive parameters"; exit
+	}
+		
 	if ($OnboardingOnly)
 	{
 		$RestParams = "onboardingOnly=true"
@@ -353,6 +317,15 @@ function Get-ImmyPendingComputer
 	else
 	{
 		$RestParams = "onboardingOnly=false"
+	}
+	
+	if ($StaleOnly)
+	{
+		$RestParams = "&staleOnly=true"
+	}
+	else
+	{
+		$RestParams = "&staleOnly=false"
 	}
 	
 	if ($IncludeOffline)
@@ -364,7 +337,34 @@ function Get-ImmyPendingComputer
 		$RestParams += "&includeOffline=false"
 	}
 	
+	if ($filter)
+	{
+		$RestParams += "&filter=$filter"
+	}
+	
+	$RestParams += "&pageSize=$ResultSize"
+	
 	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/computers/paged?$RestParams" -Headers $Header -ErrorAction Stop
+}
+
+function Get-ImmyPendingComputer
+{
+	param (
+		[parameter()]
+		[int]$ResultSize = 100,
+		[parameter()]
+		[switch]$includeOffline = $false
+	)
+	
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method"	    = "GET"
+		"path"		    = "/api/v1/provider-agents/pending?"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/provider-agents/pending?take=$ResultSize&includeOffline=$includeOffline" -Headers $Header -ErrorAction Stop
 }
 
 function Get-ImmyComputerInfo
@@ -741,7 +741,7 @@ function Get-ImmyComputerMaintenanceAction
 			"path"   = "/api/v1/maintenance-actions/latest-for-computer/$ImmyComputerID"
 			"authorization" = "Bearer $Script:AuthToken"
 		}
-		$(Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/maintenance-actions/latest-for-computer/$ImmyComputerID" -Headers $Header -ErrorAction Stop) | Select-Object -ExpandProperty data
+		$(Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/maintenance-actions/latest-for-computer/$ImmyComputerID" -Headers $Header -ErrorAction Stop)
 	}
 	Else
 	{
@@ -836,6 +836,125 @@ function Get-ImmyTag
 	Invoke-RestMethod -Method Get -Uri "$script:ApiEndpointUri/api/v1/tags" -Headers $Headers
 }
 
+function Get-ImmyEphemeralAgent
+{
+	param (
+		[parameter(Mandatory)]
+		$ImmyAgentID
+	)
+	
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method"	    = "GET"
+		"path"		    = "api/v1/computers/$ImmyAgentID/ephemeral-agent"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -Method Get -Uri "$script:ApiEndpointUri/api/v1/computers/$ImmyAgentID/ephemeral-agent" -Headers $Header
+}
+
+Function Get-ImmyOnboardingOverridable
+{
+	param (
+		[parameter(Mandatory)]
+		$ImmyComputerID
+	)
+	
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method" = "GET"
+		"path"   = "/api/v1/computers/$ImmyComputerID/resolve-onboarding-overridable-target-assignments"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -Method Get -Uri "$script:ApiEndpointUri/api/v1/computers/$ImmyComputerID/resolve-onboarding-overridable-target-assignments" -Headers $Header
+}
+
+function Get-ImmyProviderType
+{
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method" = "GET"
+		"path"   = "/api/v1/provider-types"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -Method Get -Uri "$script:ApiEndpointUri/api/v1/provider-types" -Headers $Header
+}
+
+function Get-ImmySystemTimezone
+{
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method"	    = "GET"
+		"path"		    = "/api/v1/system/timezones"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -Method Get -Uri "$script:ApiEndpointUri/api/v1/system/timezones" -Headers $Header
+}
+
+Function Get-ImmyTenantPreference
+{
+	param (
+		[parameter(Mandatory)]
+		[int]$TenantID
+	)
+	
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method" = "GET"
+		"path"   = "/api/v1/preferences/tenants/$TenantID"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -Method Get -Uri "$script:ApiEndpointUri/api/v1/preferences/tenants/$TenantID" -Headers $Header
+}
+
+Function Get-ImmyEphemeralAgentCircutBreaker
+{
+	param (
+		[parameter(Mandatory)]
+		[int]$ImmyAgentID
+	)
+	
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method" = "GET"
+		"path"   = "/api/v1/computers/$ImmyAgentID/ephemeral-agent-circuit-breaker"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -Method Get -Uri "$script:ApiEndpointUri/api/v1/computers/$ImmyAgentID/ephemeral-agent-circuit-breaker" -Headers $Header
+}
+
+function Get-ImmySoftwareInfo
+{
+	param (
+		[parameter(Mandatory)]
+		$ImmySoftwareID,
+		[parameter()]
+		[validateSet("global", "local")]
+		$softwareType = "global"
+	)
+	
+	Resolve-AuthToken
+	
+	$Header = @{
+		"method" = "GET"
+		"path"   = "/api/v1/software/$softwareType/$ImmySoftwareID"
+		"authorization" = "Bearer $Script:AuthToken"
+	}
+	
+	Invoke-RestMethod -Method Get -UseBasicParsing -Uri "$script:ApiEndpointUri/api/v1/software/$softwareType/$ImmySoftwareID" -Headers $Header
+}
+
 # New
 function New-ImmyPerson
 {
@@ -856,7 +975,14 @@ function New-ImmyPerson
 	
 	Resolve-AuthToken
 	
-	$Body = "{`"firstName`":`"$FirstName`",`"lastName`":`"$LastName`",`"emailAddress`":`"$EmailAddress`",`"tenantId`":$ImmyTenantID,`"azurePrincipalId`":`"$AzurePrincipalID`"}"
+	$Body = @{
+		firstName = $FirstName
+		lastName  = $LastName
+		emailAddress = $EmailAddress
+		tenantId	 = $ImmyTenantID
+		azurePrincipalId = $AzurePrincipalID
+	} | ConvertTo-Json -Depth 100
+	#$Body = "{`"firstName`":`"$FirstName`",`"lastName`":`"$LastName`",`"emailAddress`":`"$EmailAddress`",`"tenantId`":$ImmyTenantID,`"azurePrincipalId`":`"$AzurePrincipalID`"}"
 	$Header = @{
 		"method"	    = "POST"
 		"path"		    = "/api/v1/persons"
@@ -886,7 +1012,16 @@ function New-ImmyLicense
 	# need an example with an uploaded file too
 	# need to add logic for locking to software version
 	
-	$Body = "{`"name`":`"$LicenseName`",`"licenseValue`":`"$LicenseValue`",`"softwareType`":0,`"softwareIdentifier`":`"$ImmySoftwareID`",`"semanticVersion`":null,`"tenantId`":$ImmyTenantID,`"restrictToMajorVersion`":false"
+	$Body = @{
+		name = $LicenseName
+		licenseValue = $LicenseValue
+		softwareType = 0
+		softwareIdentifier = $ImmySoftwareID
+		semanticVersion    = "null"
+		tenantId		   = $ImmyTenantID
+		restrictToMajorVersion = $false
+	} | ConvertTo-Json -Depth 100
+	#$Body = "{`"name`":`"$LicenseName`",`"licenseValue`":`"$LicenseValue`",`"softwareType`":0,`"softwareIdentifier`":`"$ImmySoftwareID`",`"semanticVersion`":null,`"tenantId`":$ImmyTenantID,`"restrictToMajorVersion`":false"
 	$Header = @{
 		"method"	    = "POST"
 		"path"		    = "/api/v1/licenses"
@@ -1008,7 +1143,24 @@ function New-ImmyDeployment
 			"path"		    = "/api/v1/target-assignments"
 			"authorization" = "Bearer $Script:AuthToken"
 		}
-		
+		<#
+		$maintenanceTaskParameterValues = @{
+			id = 0
+			deploymentId = 0
+			maintenanceTaskType = 0
+			maintenanceTaskId   = $ImmyMaintenanceTaskID
+			maintenanceTaskParameterId = $maintenanceTaskParameterId
+			value					   = $true
+			allowOverrideFromComputerOnboarding = $false
+		}
+		$Body = @{
+			id = 0
+			maintenaceIdentifier = $maintenanceIdentifier
+			maintenanceType	     = 0
+			targetType		     = $null
+			onboardingOnly	     = $null
+		}
+		#>
 		$Body = "{`"id`":0,`"maintenanceIdentifier`":`"303`",`"maintenanceType`":0,`"targetType`":$TargetType,`"onboardingOnly`":$OnboardingOnly,`"targetName`":`"DESKTOP-2CR5DH5`",`"target`":`"4510`",`"targetCategory`":0,`"targetGroupFilter`":0,`"desiredSoftwareState`":5,`"softwareProviderType`":null,`"softwareSemanticVersion`":null,`"maintenanceTaskMode`":0,`"maintenanceTaskParameterValues`":[{`"id`":0,`"deploymentId`":0,`"maintenanceTaskType`":0,`"maintenanceTaskId`":132,`"maintenanceTaskParameterId`":321,`"value`":true,`"allowOverrideFromComputerOnboarding`":false}],`"excluded`":false,`"tenantId`":4,`"providerLinkId`":null,`"licenseId`":null,`"providerDeviceGroupType`":null,`"providerClientGroupType`":null}"
 		
 		Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/target-assignments" -Headers $Header -ErrorAction Stop
@@ -1331,12 +1483,13 @@ function Set-ImmyPendingConflict
 	}
 	
 	$Header = @{
+		"accept" = "application/json, text/plain, */*"
 		"method" = "POST"
 		"path"   = "/api/v1/provider-agents/resolve-failure/$ConflictID?manualResolutionDecision=$res"
 		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
-	Invoke-RestMethod -Method Post -UseBasicParsing -Uri "$Script:ApiEndpointUri/api/v1/provider-agents/resolve-failure/$ConflictID?manualResolutionDecision=$res" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -Method Post -UseBasicParsing -Uri "$Script:ApiEndpointUri/api/v1/provider-agents/resolve-failure/$ConflictID?manualResolutionDecision=$res" -Headers $Header -ContentType "application/x-www-form-urlencoded" -ErrorAction stop
 }
 
 # Internal functions
