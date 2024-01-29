@@ -236,7 +236,9 @@ function Get-ImmyActiveIntegration
 		[parameter()]
 		[switch]$IncludeClients = $false,
 		[parameter()]
-		[switch]$IncludeUnlinkedClients = $false
+		[switch]$IncludeUnlinkedClients = $false,
+		[parameter()]
+		[switch]$includeLinkFormSchemas = $false
 	)
 	
 	Resolve-AuthToken
@@ -265,6 +267,15 @@ function Get-ImmyActiveIntegration
 		$RestParams += "&includeUnlinkedClients=false"
 	}
 	
+	if ($includeLinkFormSchemas)
+	{
+		$RestParams += "&includeLinkFormSchemas=true"
+	}
+	else
+	{
+		$RestParams += "&includeLinkFormSchemas=false"
+	}
+	
 	Invoke-RestMethod -UseBasicParsing -Uri "$Script:APIEndpointUri/api/v1/provider-links?$RestParams" -Headers $Header -ErrorAction Stop
 }
 
@@ -289,6 +300,10 @@ function Get-ImmyComputer
 		[switch]$OnboardingOnly = $false,
 		[parameter()]
 		[switch]$IncludeOffline = $false,
+		[parameter()]
+		[switch]$devLabOnly = $false,
+		[parameter()]
+		[switch]$licensedOnly = $false,
 		[parameter()]
 		[string]$filter,
 		[parameter()]
@@ -317,6 +332,24 @@ function Get-ImmyComputer
 	else
 	{
 		$RestParams = "onboardingOnly=false"
+	}
+	
+	if ($licensedOnly)
+	{
+		$RestParams = "licensedOnly=true"
+	}
+	else
+	{
+		$RestParams = "licensedOnly=false"
+	}
+	
+	if ($devLabOnly)
+	{
+		$RestParams = "devLabOnly=true"
+	}
+	else
+	{
+		$RestParams = "devLabOnly=false"
 	}
 	
 	if ($StaleOnly)
@@ -955,6 +988,81 @@ function Get-ImmySoftwareInfo
 	Invoke-RestMethod -Method Get -UseBasicParsing -Uri "$script:ApiEndpointUri/api/v1/software/$softwareType/$ImmySoftwareID" -Headers $Header
 }
 
+function Get-ImmyAppInsight
+{
+	Resolve-AuthToken
+	# un-tested, probably not useful outside of Immy application
+	$Header = @{
+		"authorization"      = "Bearer $Script:AuthToken"
+		"method"			 = "GET"
+		"path"			     = "/app-insights.txt"
+	}
+	Invoke-RestMethod -Uri "$script:ApiEndpointUri/app-insights.txt" -Headers $Header
+}
+
+function Get-ImmyAppVersion
+{
+	Resolve-AuthToken
+	# un-tested
+	$Header = @{
+		"authorization" = "Bearer $Script:AuthToken"
+		"method"	    = "GET"
+		"path"		    = "/app-version.txt"
+	}
+	Invoke-RestMethod -Uri "$script:ApiEndpointUri/app-version.txt" -Headers $Header
+}
+
+function Get-ImmyNotification
+{
+	param (
+		[parameter()]
+		[switch]$unacknowledgedOnly = $false
+	)
+	
+	Resolve-AuthToken
+	
+	# un-tested
+	if ($unacknowledgedOnly)
+	{
+		$path = "/api/v1/notifications/unacknowledged"
+	}
+	else
+	{
+		$path = "/api/v1/notifications"
+	}
+	$Header = @{
+		"authorization" = "Bearer $Script:AuthToken"
+		"method"	    = "GET"
+		"path"		    = "$path"
+	}	
+
+	Invoke-RestMethod -Uri $("$script:ApiEndpointUri" + "$path") -Headers $Header
+}
+
+function Get-ImmyDynamicIntegrationType
+{
+	Resolve-AuthToken
+	# un-tested
+	$Header = @{
+		"authorization" = "Bearer $Script:AuthToken"
+		"method"	    = "GET"
+		"path"		    = "/api/v1/dynamic-provider-types"
+	}
+	Invoke-RestMethod -Uri "$script:ApiEndpointUri/api/v1/dynamic-provider-types" -Headers $Header
+}
+
+function Get-ImmyOAuthToken
+{
+	Resolve-AuthToken
+	# un-tested
+	$Header = @{
+		"authorization" = "Bearer $Script:AuthToken"
+		"method"	    = "GET"
+		"path"		    = "/api/v1/oauth/oauth-access-tokens"
+	}
+	Invoke-RestMethod -Uri "$script:ApiEndpointUri/api/v1/oauth/oauth-access-tokens" -Headers $Header
+}
+
 # New
 function New-ImmyPerson
 {
@@ -1352,7 +1460,7 @@ function Remove-ImmySession
 		"authorization" = "Bearer $Script:AuthToken"
 	}
 	
-	Invoke-RestMethod -UseBasicParsing -Uri "https://ainfosys.immy.bot/api/v1/maintenance-sessions/$ImmyComputerID/cancel" -Headers $Header -ErrorAction Stop
+	Invoke-RestMethod -UseBasicParsing -Uri "$script:ApiEndpointUri/api/v1/maintenance-sessions/$ImmyComputerID/cancel" -Headers $Header -ErrorAction Stop
 }
 
 # Invoke
