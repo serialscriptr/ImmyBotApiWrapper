@@ -7,7 +7,7 @@ Use this project at your own risk especially if you are not exclusively running 
 I learn about the ImmyBot API through trial and error.
 
 # Endpoint Documentation
-~To assist others who just want some documentation on the API as there is no official documentation (yet) I have started to document endpoints that I know of [here](https://github.com/serialscriptr/ImmyBotApiWrapper/blob/main/Endpoint%20Documentation/Table%20of%20Contents.md). Note that the names of the endpoints in my documentation are not official.~ As of 0.6.20 Immybot has swagger! 🥳🎉
+~To assist others who just want some documentation on the API as there is no official documentation (yet) I have started to document endpoints that I know of [here](https://github.com/serialscriptr/ImmyBotApiWrapper/blob/main/Endpoint%20Documentation/Table%20of%20Contents.md). Note that the names of the endpoints in my documentation are not official.~ As of 0.62.0 Immybot has swagger! 🥳🎉
 
 # Running the module
 For a quick way to load the module's functions into memory run the following
